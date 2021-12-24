@@ -18,3 +18,6 @@ To get started, create an `app.config` file in the root of the project. Then pas
                  providerName="MySql.Data.MySqlClient"/>
         </connectionStrings>
     </configuration>
+
+To import the database, enter the following command in your terminal:
+  mysql -u [your username] -p study < study.sql
