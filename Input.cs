@@ -22,15 +22,28 @@ Type 0 to Exit";
     public static string command = "";
 
     public static void Start() {
+      Console.WriteLine(helpMessage);
       while(true) {
-        Console.WriteLine(helpMessage);
         command = Console.ReadLine().ToLower().Trim();
 
         if(command == "exit" || command == "0") break;
 
         else if(command == "help") Console.WriteLine(helpMessage);
 
-        else if(command == "2") StackController.Start();
+        else if(command == "1") {
+          StudyController.Start();
+          Console.WriteLine(helpMessage);
+        }
+
+        else if(command == "2") {
+          StackController.Start();
+          Console.WriteLine(helpMessage);
+        }
+
+        else if(command == "3") {
+          CardController.Start();
+          Console.WriteLine(helpMessage);
+        }
 
         else if(string.IsNullOrWhiteSpace(command)) continue; // Do nothing if the user presses enter
         else Console.WriteLine("Not a command. Use 'help' if required. ");

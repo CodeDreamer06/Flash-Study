@@ -15,27 +15,24 @@ Manage Stacks
     public static string command = "";
 
     public static void Start() {
+      Console.WriteLine(stackMessage);
       while(true) {
-        Console.WriteLine(stackMessage);
         command = Console.ReadLine().ToLower().Trim();
 
-        if(command == "exit" || command == "0") break;
-
-        else if(command == "help") Console.WriteLine(stackMessage);
-
-        else if(command == "show")
-          SqlAccess.Read("SELECT * FROM Stacks");
+        if(command == "show")
+          SqlAccess.ReadTable("Stacks");
 
         else if(command.StartsWith("add"))
-          SqlAccess.Execute($"INSERT INTO Stacks(StackName) VALUES('{command.Split()[1]}');");
+          SqlAccess.AddStack(command.Split()[1]);
 
         else if(command.StartsWith("remove"))
-          SqlAccess.Execute($"DELETE FROM Stacks WHERE StackName='{command.Split()[1]}';");
+          SqlAccess.RemoveStack(command.Split()[1]);
 
         else if(command.StartsWith("edit"))
-          SqlAccess.Execute($"UPDATE Stacks SET StackName = '{command.Split()[2]}' WHERE StackName = '{command.Split()[1]}';");
+          SqlAccess.EditStack(command.Split()[1], command.Split()[2]);
 
         else if(command == "back" || command == "0") break;
+        else if(command == "help") Console.WriteLine(stackMessage);
         else if(string.IsNullOrWhiteSpace(command)) continue; // Do nothing if the user presses enter
         else Console.WriteLine("Not a command. Use 'help' if required. ");
 
