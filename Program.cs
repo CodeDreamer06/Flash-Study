@@ -6,6 +6,7 @@ namespace DotNet_Flash_Study
     {
         static void Main(string[] args)
         {
+          SqlAccess.Check();
           Input.Start();
         }
     }

@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Configuration;
 using System.Collections.Generic;
 using MySql.Data.MySqlClient;
@@ -21,6 +22,23 @@ namespace DotNet_Flash_Study
   class SqlAccess
   {
     public static string connStr = ConfigurationManager.ConnectionStrings["connStr"].ConnectionString;
+
+    public static void Check() {
+      using(MySqlConnection con = new MySqlConnection(connStr)) {
+        try {
+          con.Open();
+        }
+
+        catch (MySqlException ex) {
+          Console.WriteLine("An error occurred.");
+          if(ex.Number == 1042)
+            Console.WriteLine("Unable to connect to MySQL server. Make sure MySQL is running.");
+          else
+            Console.WriteLine(ex);
+          System.Environment.Exit(1);
+        }
+      }
+    }
 
     public static void Execute(string query)
     {
@@ -84,6 +102,29 @@ namespace DotNet_Flash_Study
       }
     }
 
+    public static List<Stack> ReadStacksAsList(string query)
+    {
+      try {
+        using(MySqlConnection con = new MySqlConnection(connStr)){
+          con.Open();
+          using var cmd = new MySqlCommand(query, con);
+          MySqlDataReader reader = cmd.ExecuteReader();
+          if(!reader.HasRows)
+            Console.WriteLine("No data found");
+          var output = new List<Stack>();
+          while (reader.Read())
+            output.Add(new Stack(Convert.ToInt32(reader["StackId"]), reader["StackName"].ToString()));
+          return output;
+        }
+      }
+
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex);
+        return null;
+      }
+    }
+
     public static void ReadTable(string table) {
       Read($"SELECT * FROM {table}");
     }
@@ -96,18 +137,22 @@ namespace DotNet_Flash_Study
       return ReadFlashCardsAsList($"SELECT * FROM FlashCards");
     }
 
-    public static List<FlashCard> ReadFlashCards(string stackId) {
+    public static List<FlashCard> ReadFlashCards(int stackId) {
       return ReadFlashCardsAsList($"SELECT * FROM FlashCards WHERE StackId = {stackId}");
     }
 
-    public static void AddStack(string name) {
-      Execute($"INSERT INTO Stacks(StackName) VALUES('{name}');");
-      Console.WriteLine("Successfully added " +  name);
+    public static List<Stack> ReadStacks() {
+      return ReadStacksAsList($"SELECT * FROM Stacks");
     }
 
-    public static void RemoveStack(string name) {
-      Execute($"DELETE FROM Stacks WHERE StackName='{name}';");
-      Console.WriteLine("Successfully removed " + name);
+    public static void AddStack(Stack properties) {
+      Execute($"INSERT INTO Stacks(StackName) VALUES('{properties.StackName}');");
+      Console.WriteLine("Successfully added " +  properties.StackName);
+    }
+
+    public static void RemoveStack(Stack properties) {
+      Execute($"DELETE FROM Stacks WHERE StackName='{properties.StackName}';");
+      Console.WriteLine("Successfully removed " + properties.StackName);
     }
     public static void EditStack(string oldName, string newName) {
       Execute($"UPDATE Stacks SET StackName = '{newName}' WHERE StackName = '{oldName}';");
@@ -120,8 +165,9 @@ namespace DotNet_Flash_Study
     }
 
     public static void RemoveCard(string cardId) {
-      Execute($"DELETE FROM FlashCards WHERE cardId='{cardId}';");
-      Console.WriteLine($"Successfully removed {cardId}");
+      var flashCard = SqlAccess.ReadFlashCards()[Convert.ToInt32(cardId) - 1];
+      Execute($"DELETE FROM FlashCards WHERE cardId='{flashCard.CardId}';");
+      Console.WriteLine($"Successfully removed {flashCard.Title}");
     }
   }
 }

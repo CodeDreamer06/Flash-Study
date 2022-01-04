@@ -4,19 +4,11 @@ using System.Collections.Generic;
 namespace DotNet_Flash_Study
 {
   class CardController {
-
-    public static string cardMessage = @"
-Manage Flash Cards
-* show: to view cards
-* add: to add a flash card
-* remove [card id]: to remove a card
-* Back or 0: go back to the main menu";
-
     public static string command = "";
 
     public static void Start()
     {
-      Console.WriteLine(cardMessage);
+      Console.WriteLine(Help.cardMessage);
       while(true)
       {
         command = Console.ReadLine().ToLower().Trim();
@@ -26,8 +18,10 @@ Manage Flash Cards
           var flashCardsViews = new List<FlashCardToViewDTO>();
           for(int i = 0; i < flashCards.Count; i++)
               flashCardsViews.Add(new FlashCardToViewDTO(flashCards[i]));
-          foreach(var view in flashCardsViews)
-            Console.WriteLine($"{view.CardId}    {view.Title}   {view.Answer}");
+          for(int i = 0; i < flashCardsViews.Count; i++) {
+            var view = flashCardsViews[i];
+            Console.WriteLine($"{i + 1}   {view.Title}     {view.Answer}");
+          }
         }
 
         else if(command == "add")
@@ -46,11 +40,12 @@ Manage Flash Cards
           SqlAccess.RemoveCard(command.Split()[1]);
 
         else if(command == "back" || command == "0") break;
-        else if(command == "help") Console.WriteLine(cardMessage);
+        else if(command == "help") Console.WriteLine(Help.cardMessage);
         else if(string.IsNullOrWhiteSpace(command)) continue;
         else Console.WriteLine("Not a command. Use 'help' if required. ");
 
       }
+      Console.WriteLine(Help.mainMenu);
     }
   }
 }

@@ -1,6 +1,6 @@
 using System;
 
-namespace NamespaceName
+namespace DotNet_Flash_Study
 {
   class StringUtilities {
     public static int splitInteger(string word, string keyword, string errorMessage) {
