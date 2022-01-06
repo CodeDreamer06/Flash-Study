@@ -1,4 +1,4 @@
-namespace DotNet_Flash_Study
+namespace FlashStudy.Utilities
 {
   class Help
   {
@@ -7,6 +7,7 @@ Main Menu
 Type 1 to Study
 Type 2 to Manage Stacks
 Type 3 to Manage FlashCards
+Type 4 to View Study Sessions
 Type 0 to Exit";
 
     public static string stackMessage = @"

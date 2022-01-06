@@ -1,6 +1,8 @@
 using System;
+using FlashStudy.Utilities;
+using FlashStudy.Controllers;
 
-namespace DotNet_Flash_Study
+namespace FlashStudy
 {
   class Input
   {
@@ -17,6 +19,7 @@ namespace DotNet_Flash_Study
         else if(command == "1") StudyController.Start();
         else if(command == "2") StackController.Start();
         else if(command == "3") CardController.Start();
+        else if(command == "4") StudyController.ViewSessions();
 
         else if(string.IsNullOrWhiteSpace(command)) continue;
         else Console.WriteLine("Not a command. Use 'help' if required. ");

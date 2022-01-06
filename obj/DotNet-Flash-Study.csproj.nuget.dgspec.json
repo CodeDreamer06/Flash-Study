@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "E:\\Abhinav\\DotNet-Flash-Study\\DotNet-Flash-Study.csproj": {}
+    "E:\\Abhinav\\Flash Study\\DotNet-Flash-Study.csproj": {}
   },
   "projects": {
-    "E:\\Abhinav\\DotNet-Flash-Study\\DotNet-Flash-Study.csproj": {
+    "E:\\Abhinav\\Flash Study\\DotNet-Flash-Study.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "E:\\Abhinav\\DotNet-Flash-Study\\DotNet-Flash-Study.csproj",
+        "projectUniqueName": "E:\\Abhinav\\Flash Study\\DotNet-Flash-Study.csproj",
         "projectName": "DotNet-Flash-Study",
-        "projectPath": "E:\\Abhinav\\DotNet-Flash-Study\\DotNet-Flash-Study.csproj",
+        "projectPath": "E:\\Abhinav\\Flash Study\\DotNet-Flash-Study.csproj",
         "packagesPath": "C:\\Users\\abhi\\.nuget\\packages\\",
-        "outputPath": "E:\\Abhinav\\DotNet-Flash-Study\\obj\\",
+        "outputPath": "E:\\Abhinav\\Flash Study\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\abhi\\AppData\\Roaming\\NuGet\\NuGet.Config"

@@ -1,6 +1,7 @@
 using System;
+using FlashStudy.Utilities;
 
-namespace DotNet_Flash_Study
+namespace FlashStudy.Models
 {
   public class Stack
   {

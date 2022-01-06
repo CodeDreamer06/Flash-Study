@@ -3,30 +3,23 @@ using System.Data;
 using System.Configuration;
 using System.Collections.Generic;
 using MySql.Data.MySqlClient;
+using FlashStudy.Models;
 
-/*
-Creating table FlashCards:
-CREATE TABLE FlashCards(
-  CardId INT PRIMARY KEY AUTO_INCREMENT,
-  Title VARCHAR(255) NOT NULL,
-  Answer VARCHAR(64),
-  StackId INT NOT NULL,
-  FOREIGN KEY (StackId)
-    REFERENCES Stacks(StackId)
-    ON DELETE CASCADE
-);
-*/
-
-namespace DotNet_Flash_Study
+namespace FlashStudy
 {
   class SqlAccess
   {
     public static string connStr = ConfigurationManager.ConnectionStrings["connStr"].ConnectionString;
+    public static string defaultConnStr = ConfigurationManager.ConnectionStrings["defaultConnStr"].ConnectionString;
 
     public static void Check() {
-      using(MySqlConnection con = new MySqlConnection(connStr)) {
+      using(MySqlConnection con = new MySqlConnection(defaultConnStr)) {
         try {
           con.Open();
+          string query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'Study'";
+          using var cmd = new MySqlCommand(query, con);
+          MySqlDataReader reader = cmd.ExecuteReader();
+          if(reader.HasRows) return;
         }
 
         catch (MySqlException ex) {
@@ -36,6 +29,40 @@ namespace DotNet_Flash_Study
           else
             Console.WriteLine(ex);
           System.Environment.Exit(1);
+        }
+      }
+      using(MySqlConnection con = new MySqlConnection(defaultConnStr)) {
+        Console.WriteLine("Welcome to Flash Study! \nCreating the database..");
+        con.Open();
+        var initialQueries = new string[] {
+          @"CREATE DATABASE Study;",
+          @"USE Study;",
+          @"CREATE TABLE Stacks(
+            StackId INT PRIMARY KEY AUTO_INCREMENT,
+            StackName VARCHAR(64) NOT NULL
+          );",
+          @"CREATE TABLE FlashCards(
+            CardId INT PRIMARY KEY AUTO_INCREMENT,
+            Title VARCHAR(255) NOT NULL,
+            Answer VARCHAR(64),
+            StackId INT NOT NULL,
+            FOREIGN KEY (StackId)
+              REFERENCES Stacks(StackId)
+              ON DELETE CASCADE
+          );",
+          @"CREATE TABLE Sessions(
+            SessionId INT PRIMARY KEY AUTO_INCREMENT,
+            CreatedOn TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            Score INT NOT NULL,
+            StackId INT NOT NULL,
+            FOREIGN KEY (StackId)
+              REFERENCES Stacks(StackId)
+              ON DELETE CASCADE
+          );"
+        };
+        foreach (string line in initialQueries) {
+          using var lineQuery = new MySqlCommand(line, con);
+          lineQuery.ExecuteNonQuery();
         }
       }
     }
@@ -53,29 +80,6 @@ namespace DotNet_Flash_Study
       catch (Exception ex)
       {
         Console.WriteLine(ex.ToString());
-      }
-    }
-
-    protected static void Read(string query)
-    {
-      try {
-        using(MySqlConnection con = new MySqlConnection(connStr)){
-          con.Open();
-          using var cmd = new MySqlCommand(query, con);
-          MySqlDataReader reader = cmd.ExecuteReader();
-          if(!reader.HasRows)
-            Console.WriteLine("No data found");
-          while (reader.Read()) {
-            for (int i = 0; i < reader.FieldCount; i++)
-              Console.Write(reader[i].ToString() + "\t");
-            Console.Write("\n");
-          }
-        }
-      }
-
-      catch (Exception ex)
-      {
-        Console.WriteLine(ex);
       }
     }
 
@@ -125,12 +129,28 @@ namespace DotNet_Flash_Study
       }
     }
 
-    public static void ReadTable(string table) {
-      Read($"SELECT * FROM {table}");
-    }
 
-    public static void ReadTable(string table, string fieldName, string filterId) {
-      Read($"SELECT * FROM {table} WHERE {fieldName} = {filterId}");
+    public static List<Session> ReadSessionsAsList(string query)
+    {
+      try {
+        using(MySqlConnection con = new MySqlConnection(connStr)){
+          con.Open();
+          using var cmd = new MySqlCommand(query, con);
+          MySqlDataReader reader = cmd.ExecuteReader();
+          if(!reader.HasRows)
+            Console.WriteLine("No data found");
+          var output = new List<Session>();
+          while (reader.Read())
+            output.Add(new Session(Convert.ToInt32(reader["SessionId"]), reader["CreatedOn"].ToString(), Convert.ToInt32(reader["Score"]), Convert.ToInt32(reader["StackId"])));
+          return output;
+        }
+      }
+
+      catch (Exception ex)
+      {
+        Console.WriteLine(ex);
+        return null;
+      }
     }
 
     public static List<FlashCard> ReadFlashCards() {
@@ -168,6 +188,14 @@ namespace DotNet_Flash_Study
       var flashCard = SqlAccess.ReadFlashCards()[Convert.ToInt32(cardId) - 1];
       Execute($"DELETE FROM FlashCards WHERE cardId='{flashCard.CardId}';");
       Console.WriteLine($"Successfully removed {flashCard.Title}");
+    }
+
+    public static void AddSession(Session properties) {
+      Execute($"INSERT INTO Sessions(score, StackId) VALUES('{properties.Score}', '{properties.StackId}');");
+    }
+
+    public static List<Session> ReadSessions() {
+      return ReadSessionsAsList($"SELECT * FROM Sessions");
     }
   }
 }

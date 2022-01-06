@@ -1,12 +1,16 @@
 using System;
 using System.Collections.Generic;
+using FlashStudy.Utilities;
+using FlashStudy.Models;
+using FlashStudy.DTOs;
 
-namespace DotNet_Flash_Study
+namespace FlashStudy.Controllers
 {
   class StudyController {
     public static List<Stack> ShowStackList() {
-      Console.WriteLine("Which Stack would you like to study?");
       List<Stack> stacks = SqlAccess.ReadStacks();
+      if(stacks.Count == 0) return new List<Stack>();
+      Console.WriteLine("What would you like to study today?");
       var stackViews = new List<StackToViewDTO>();
       for(int i = 0; i < stacks.Count; i++)
         stackViews.Add(new StackToViewDTO(stacks[i]));
@@ -17,6 +21,10 @@ namespace DotNet_Flash_Study
 
     public static void Start() {
       var stacks = ShowStackList();
+      if(stacks.Count == 0) {
+        Console.WriteLine(Help.mainMenu);
+        return;
+      };
       string command = Console.ReadLine().ToLower().Trim();
       while(string.IsNullOrWhiteSpace(command)) {
         Console.WriteLine("Please enter a valid number");
@@ -44,6 +52,17 @@ namespace DotNet_Flash_Study
         }
       decimal score = Decimal.Divide(correctCount, flashCards.Count) * 100;
       Console.WriteLine("Today's Score: " + score + "%");
+      SqlAccess.AddSession(new Session((int) score, absoluteStackId));
+      Console.WriteLine(Help.mainMenu);
+    }
+
+    public static void ViewSessions() {
+      var sessions = SqlAccess.ReadSessions();
+      var sessionViews = new List<SessionToViewDTO>();
+      for(int i = 0; i < sessions.Count; i++)
+        sessionViews.Add(new SessionToViewDTO(sessions[i]));
+      for(int i = 0; i < sessionViews.Count; i++)
+        Console.WriteLine($"{i + 1}   {sessionViews[i].Score.ToString()}   {sessions[i].CreatedOn}");
       Console.WriteLine(Help.mainMenu);
     }
   }

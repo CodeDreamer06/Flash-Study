@@ -1,6 +1,6 @@
 using System;
 
-namespace DotNet_Flash_Study
+namespace FlashStudy.Models
 {
     public class FlashCard
     {

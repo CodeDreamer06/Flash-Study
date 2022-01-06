@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
+using FlashStudy.Utilities;
+using FlashStudy.Models;
+using FlashStudy.DTOs;
 
-namespace DotNet_Flash_Study
+namespace FlashStudy.Controllers
 {
   class CardController {
     public static string command = "";

@@ -1,6 +1,7 @@
 using System;
+using FlashStudy.Models;
 
-namespace DotNet_Flash_Study
+namespace FlashStudy.DTOs
 {
   public class StackToViewDTO
   {
