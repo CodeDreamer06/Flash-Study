@@ -12,7 +12,7 @@ A simple application that helps you study using spaced repetition in fully featu
 ## Instructions
 To get started, create an `app.config` file in the root of the project. Then paste in the following XML along with the connection string for your SQL.
 
-<?xml version="1.0"?>
+`<?xml version="1.0"?>
 <configuration>
     <connectionStrings>
         <add name="defaultConnStr"
@@ -22,4 +22,4 @@ To get started, create an `app.config` file in the root of the project. Then pas
              connectionString="server=localhost;user=root;database=study;port=3306;password=[enter your password here]"
              providerName="MySql.Data.MySqlClient"/>
     </connectionStrings>
-</configuration>
+</configuration>`
