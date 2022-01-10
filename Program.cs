@@ -6,8 +6,8 @@ namespace FlashStudy
     {
         static void Main(string[] args)
         {
-          SqlAccess.Check();
-          Input.Start();
+          SqlAccess.CheckIfDbExists();
+          Input.ShowMenu();
         }
     }
 }

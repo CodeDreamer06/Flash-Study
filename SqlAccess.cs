@@ -12,28 +12,35 @@ namespace FlashStudy
     public static string connStr = ConfigurationManager.ConnectionStrings["connStr"].ConnectionString;
     public static string defaultConnStr = ConfigurationManager.ConnectionStrings["defaultConnStr"].ConnectionString;
 
-    public static void Check() {
-      using(MySqlConnection con = new MySqlConnection(defaultConnStr)) {
-        try {
+    public static void CheckIfDbExists()
+    {
+      using(MySqlConnection con = new MySqlConnection(defaultConnStr))
+      {
+        try
+        {
           con.Open();
+
           string query = "SELECT SCHEMA_NAME FROM INFORMATION_SCHEMA.SCHEMATA WHERE SCHEMA_NAME = 'Study'";
           using var cmd = new MySqlCommand(query, con);
           MySqlDataReader reader = cmd.ExecuteReader();
+
           if(reader.HasRows) return;
         }
 
-        catch (MySqlException ex) {
+        catch (MySqlException ex)
+        {
           Console.WriteLine("An error occurred.");
           if(ex.Number == 1042)
             Console.WriteLine("Unable to connect to MySQL server. Make sure MySQL is running.");
-          else
-            Console.WriteLine(ex);
+          else Console.WriteLine(ex);
           System.Environment.Exit(1);
         }
       }
-      using(MySqlConnection con = new MySqlConnection(defaultConnStr)) {
+      using(MySqlConnection con = new MySqlConnection(defaultConnStr))
+      {
         Console.WriteLine("Welcome to Flash Study! \nCreating the database..");
         con.Open();
+
         var initialQueries = new string[] {
           @"CREATE DATABASE Study;",
           @"USE Study;",
@@ -60,41 +67,63 @@ namespace FlashStudy
               ON DELETE CASCADE
           );"
         };
-        foreach (string line in initialQueries) {
+
+        foreach (string line in initialQueries)
+        {
           using var lineQuery = new MySqlCommand(line, con);
           lineQuery.ExecuteNonQuery();
         }
       }
     }
 
-    public static void Execute(string query)
+    protected static void Execute(string query)
     {
-      try {
-        using(MySqlConnection con = new MySqlConnection(connStr)){
+      try
+      {
+        using(MySqlConnection con = new MySqlConnection(connStr))
+        {
           con.Open();
           using var cmd = new MySqlCommand(query, con);
           cmd.ExecuteNonQuery();
         }
       }
 
-      catch (Exception ex)
+      catch (MySqlException ex)
       {
-        Console.WriteLine(ex.ToString());
+        if(ex.Number == 1452)
+          Console.WriteLine("Invalid Foreign key entered.");
+
+        else
+          Console.WriteLine($"Exception code: {ex.Number} \nMessage: {ex.Message}");
       }
     }
 
-    public static List<FlashCard> ReadFlashCardsAsList(string query)
+    // Read Methods
+    protected static List<List<string>> Read(string query, string[] columns)
     {
-      try {
-        using(MySqlConnection con = new MySqlConnection(connStr)){
+      try
+      {
+        using(MySqlConnection con = new MySqlConnection(connStr))
+        {
           con.Open();
+
           using var cmd = new MySqlCommand(query, con);
           MySqlDataReader reader = cmd.ExecuteReader();
+
           if(!reader.HasRows)
             Console.WriteLine("No data found");
-          var output = new List<FlashCard>();
-          while (reader.Read())
-            output.Add(new FlashCard(reader["CardId"].ToString(), reader["Title"].ToString(), reader["Answer"].ToString(), reader["StackId"].ToString()));
+
+          var output = new List<List<string>>();
+          var row = new List<string>();
+
+          while (reader.Read()) {
+            foreach (string column in columns)
+              row.Add(reader[column].ToString());
+
+            output.Add(row.GetRange(0, row.Count));
+            row.Clear();
+          }
+
           return output;
         }
       }
@@ -106,96 +135,86 @@ namespace FlashStudy
       }
     }
 
-    public static List<Stack> ReadStacksAsList(string query)
+    public static List<FlashCard> ReadFlashCards()
     {
-      try {
-        using(MySqlConnection con = new MySqlConnection(connStr)){
-          con.Open();
-          using var cmd = new MySqlCommand(query, con);
-          MySqlDataReader reader = cmd.ExecuteReader();
-          if(!reader.HasRows)
-            Console.WriteLine("No data found");
-          var output = new List<Stack>();
-          while (reader.Read())
-            output.Add(new Stack(Convert.ToInt32(reader["StackId"]), reader["StackName"].ToString()));
-          return output;
-        }
-      }
+      var rawCards = Read($"SELECT * FROM FlashCards", new string[] { "Title", "Answer", "StackId", "CardId" });
+      var cards = new List<FlashCard>();
 
-      catch (Exception ex)
-      {
-        Console.WriteLine(ex);
-        return null;
-      }
+      foreach (var card in rawCards)
+        cards.Add(new FlashCard(card.ToArray()));
+
+       return cards;
     }
 
-
-    public static List<Session> ReadSessionsAsList(string query)
+    public static List<FlashCard> ReadFlashCards(int stackId)
     {
-      try {
-        using(MySqlConnection con = new MySqlConnection(connStr)){
-          con.Open();
-          using var cmd = new MySqlCommand(query, con);
-          MySqlDataReader reader = cmd.ExecuteReader();
-          if(!reader.HasRows)
-            Console.WriteLine("No data found");
-          var output = new List<Session>();
-          while (reader.Read())
-            output.Add(new Session(Convert.ToInt32(reader["SessionId"]), reader["CreatedOn"].ToString(), Convert.ToInt32(reader["Score"]), Convert.ToInt32(reader["StackId"])));
-          return output;
-        }
-      }
+      var rawCards = Read($"SELECT * FROM FlashCards WHERE StackId = {stackId}", new string[] { "Title", "Answer", "StackId", "CardId" });
+      var cards = new List<FlashCard>();
 
-      catch (Exception ex)
-      {
-        Console.WriteLine(ex);
-        return null;
-      }
+      foreach (var card in rawCards)
+        cards.Add(new FlashCard(card.ToArray()));
+
+       return cards;
     }
 
-    public static List<FlashCard> ReadFlashCards() {
-      return ReadFlashCardsAsList($"SELECT * FROM FlashCards");
+    public static List<Stack> ReadStacks()
+    {
+      var rawStacks = Read($"SELECT * FROM Stacks", new string[] { "StackId", "StackName" });
+      var stacks = new List<Stack>();
+
+      foreach (var stack in rawStacks)
+        stacks.Add(new Stack(stack));
+
+       return stacks;
     }
 
-    public static List<FlashCard> ReadFlashCards(int stackId) {
-      return ReadFlashCardsAsList($"SELECT * FROM FlashCards WHERE StackId = {stackId}");
+    public static List<Session> ReadSessions()
+    {
+      var rawSessions = Read($"SELECT * FROM Sessions", new string[] { "SessionId", "CreatedOn", "Score", "StackId" });
+      var sessions = new List<Session>();
+
+      foreach (var session in rawSessions)
+        sessions.Add(new Session(session.ToArray()));
+
+       return sessions;
     }
 
-    public static List<Stack> ReadStacks() {
-      return ReadStacksAsList($"SELECT * FROM Stacks");
-    }
-
-    public static void AddStack(Stack properties) {
+    // Write Methods
+    public static void AddStack(Stack properties)
+    {
       Execute($"INSERT INTO Stacks(StackName) VALUES('{properties.StackName}');");
       Console.WriteLine("Successfully added " +  properties.StackName);
     }
 
-    public static void RemoveStack(Stack properties) {
-      Execute($"DELETE FROM Stacks WHERE StackName='{properties.StackName}';");
-      Console.WriteLine("Successfully removed " + properties.StackName);
-    }
-    public static void EditStack(string oldName, string newName) {
-      Execute($"UPDATE Stacks SET StackName = '{newName}' WHERE StackName = '{oldName}';");
-      Console.WriteLine($"Successfully changed {oldName} to {newName}");
-    }
-
-    public static void AddCard(FlashCard properties) {
+    public static void AddCard(FlashCard properties)
+    {
       Execute($"INSERT INTO FlashCards(Title, Answer, StackId) VALUES('{properties.Title}', '{properties.Answer}', '{properties.StackId}');");
       Console.WriteLine($"Successfully inserted {properties.Title}");
     }
 
-    public static void RemoveCard(string cardId) {
-      var flashCard = SqlAccess.ReadFlashCards()[Convert.ToInt32(cardId) - 1];
-      Execute($"DELETE FROM FlashCards WHERE cardId='{flashCard.CardId}';");
-      Console.WriteLine($"Successfully removed {flashCard.Title}");
-    }
-
-    public static void AddSession(Session properties) {
+    public static void AddSession(Session properties)
+    {
       Execute($"INSERT INTO Sessions(score, StackId) VALUES('{properties.Score}', '{properties.StackId}');");
     }
 
-    public static List<Session> ReadSessions() {
-      return ReadSessionsAsList($"SELECT * FROM Sessions");
+    public static void EditStack(ReplaceStack properties){
+      Execute($"UPDATE Stacks SET StackName = '{properties.NewStackName}' WHERE StackName = '{properties.OldStackName}';");
+      Console.WriteLine($"Successfully changed {properties.OldStackName} to {properties.NewStackName}");
+    }
+
+
+    // Delete Methods
+    public static void RemoveStack(Stack properties)
+    {
+      Execute($"DELETE FROM Stacks WHERE StackName='{properties.StackName}';");
+      Console.WriteLine("Successfully removed " + properties.StackName);
+    }
+
+    public static void RemoveCard(int cardId)
+    {
+      var flashCard = SqlAccess.ReadFlashCards()[cardId - 1];
+      Execute($"DELETE FROM FlashCards WHERE cardId='{flashCard.CardId}';");
+      Console.WriteLine($"Successfully removed {flashCard.Title}");
     }
   }
 }

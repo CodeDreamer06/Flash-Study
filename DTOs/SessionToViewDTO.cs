@@ -8,9 +8,10 @@ namespace FlashStudy.DTOs
     public string CreatedOn { get; set; }
     public int Score { get; set; }
 
-    public SessionToViewDTO(Session session) {
-      this.CreatedOn = session.CreatedOn;
-      this.Score = session.Score;
+    public SessionToViewDTO(Session session)
+    {
+      CreatedOn = session.CreatedOn;
+      Score = session.Score;
     }
   }
 }

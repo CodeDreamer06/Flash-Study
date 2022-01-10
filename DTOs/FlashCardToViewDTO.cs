@@ -8,9 +8,10 @@ namespace FlashStudy.DTOs
       public string Title { get; set; }
       public string Answer { get; set; }
 
-      public FlashCardToViewDTO(FlashCard flashCard) {
-        this.Title = flashCard.Title;
-        this.Answer = flashCard.Answer;
+      public FlashCardToViewDTO(FlashCard flashCard)
+      {
+        Title = flashCard.Title;
+        Answer = flashCard.Answer;
       }
     }
 }

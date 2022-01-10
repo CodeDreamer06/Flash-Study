@@ -7,8 +7,9 @@ namespace FlashStudy.DTOs
   {
     public string StackName { get; set; }
 
-    public StackToViewDTO(Stack stack) {
-      this.StackName = stack.StackName;
+    public StackToViewDTO(Stack stack)
+    {
+      StackName = stack.StackName;
     }
   }
 }
